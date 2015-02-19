@@ -1,0 +1,125 @@
+
+// wired connections
+#define MOTOR_A_PWM 5 // D5 --> Motor A Input A --> MOTOR A +
+#define MOTOR_A_DIR 6 // D6 --> Motor A Input B --> MOTOR A -
+#define MOTOR_B_PWM 10 // D10 --> Motor B Input A --> MOTOR B +
+#define MOTOR_B_DIR 11 // D11 --> Motor B Input B --> MOTOR B -
+ 
+ 
+// the actual values for "fast" and "slow" depend on the motor
+#define PWM_SLOW 100  // arbitrary slow speed PWM duty cycle
+#define PWM_FAST 250 // arbitrary fast speed PWM duty cycle
+#define DIR_DELAY 500 // brief delay for abrupt motor changes
+
+//Ultra Sonic Sensor
+#define trigPin 13
+#define echoPin 12
+
+volatile boolean  estop = false;
+
+ 
+void setup()
+{
+  //Motor A Setup
+  pinMode( MOTOR_A_DIR, OUTPUT );
+  pinMode( MOTOR_A_PWM, OUTPUT );
+  digitalWrite( MOTOR_A_DIR, LOW );
+  digitalWrite( MOTOR_A_PWM, LOW );
+  
+  //Motor B Setup
+  pinMode( MOTOR_B_DIR, OUTPUT );
+  pinMode( MOTOR_B_PWM, OUTPUT );
+  digitalWrite( MOTOR_B_DIR, LOW );
+  digitalWrite( MOTOR_B_PWM, LOW );
+  
+  //Motor 
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  //Emergency Stop
+  attachInterrupt(0, button, FALLING);
+
+}
+ 
+void loop()
+{
+    long distance;
+    distance = sensor();
+    
+  if (!estop){
+     
+    if (distance > 10) { 
+      forward ();
+    }
+  
+    if (distance <= 10)
+    { 
+      pause();
+      reverse();
+      delay(500);
+      pause();
+      turn();
+      delay(500);
+      pause();
+    } 
+  }
+}
+
+void forward(){
+        // set the motor speed and direction
+        digitalWrite( MOTOR_A_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_A_PWM, 255-PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_B_DIR, HIGH ); // direction = forward
+        analogWrite( MOTOR_B_PWM, 255-PWM_FAST ); // PWM speed = fast
+  }
+
+void reverse()
+  {
+        // set the motor speed and direction
+        digitalWrite( MOTOR_A_DIR, LOW ); // direction = reverse      
+        analogWrite( MOTOR_A_PWM, PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_B_DIR, LOW ); // direction = reverse      
+        analogWrite( MOTOR_B_PWM, PWM_FAST ); // PWM speed = fast
+  }
+  
+  void pause()
+    {
+        digitalWrite( MOTOR_A_DIR, LOW );
+        digitalWrite( MOTOR_A_PWM, LOW );
+        digitalWrite( MOTOR_B_DIR, LOW );
+        digitalWrite( MOTOR_B_PWM, LOW );
+        delay( DIR_DELAY );
+    }
+
+void turn()
+  {
+            // set the motor speed and direction
+        digitalWrite( MOTOR_A_DIR, HIGH ); // direction = reverse      
+        analogWrite( MOTOR_A_PWM, 255-PWM_FAST ); // PWM speed = fast
+        digitalWrite( MOTOR_B_DIR, LOW ); // direction = reverse      
+        analogWrite( MOTOR_B_PWM, PWM_FAST ); // PWM speed = fast
+  }
+  
+  
+long sensor()
+{
+  long duration, distance;
+  digitalWrite(trigPin, LOW);  
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) / 29.1; 
+  return distance;
+}
+
+void button()
+{
+        digitalWrite( MOTOR_A_DIR, LOW );
+        digitalWrite( MOTOR_A_PWM, LOW );
+        digitalWrite( MOTOR_B_DIR, LOW );
+        digitalWrite( MOTOR_B_PWM, LOW );
+        estop = !estop;
+}
+
