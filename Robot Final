@@ -1,0 +1,144 @@
+
+// wired connections
+#define MOTOR_A_PWM 6 // Pin 6 --> Motor A Input A-1A
+#define MOTOR_A_DIR 5 // Pin 5 --> Motor A Input A-1B
+#define MOTOR_B_PWM 11 // Pin 11 --> Motor A Input A-1A
+#define MOTOR_B_DIR 10 // Pin 10 --> Motor A Input A-1B
+ 
+// PWM Speed & Delay for abrupt motor changes
+#define PWM_SPEED 250 
+#define DIR_DELAY 500
+
+//Ultra Sonic Sensor
+#define trigPin 13
+#define echoPin 12
+
+//Variables to keep track of distances
+int cen_distance = 0;
+int right_distance = 0;
+int left_distance = 0;
+ 
+void setup()
+{
+  //Motor A Setup
+  pinMode( MOTOR_A_DIR, OUTPUT );      //Motor A Setup (DIRECTION & PWM Pins)
+  pinMode( MOTOR_A_PWM, OUTPUT );
+  digitalWrite( MOTOR_A_DIR, LOW );    //Set Motor to OFF
+  digitalWrite( MOTOR_A_PWM, LOW );
+  
+  //Motor B Setup
+  pinMode( MOTOR_B_DIR, OUTPUT );
+  pinMode( MOTOR_B_PWM, OUTPUT );
+  digitalWrite( MOTOR_B_DIR, LOW );
+  digitalWrite( MOTOR_B_PWM, LOW );
+  
+  //Sensor Setup
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  Serial.begin(9600);
+
+}
+ 
+void loop()
+{
+
+  forward();
+  
+  cen_distance = sensor();
+  Serial.print("Centre Distance: ");
+  Serial.println(cen_distance);
+  
+      if (cen_distance < 10){
+          direction_check();
+          }   
+}    
+  
+void direction_check(){
+       pause();
+       cen_distance = sensor();              //Obtain new reading, in-case overshot
+       turn_left();                         //Turn right for 250 ms
+       delay(250);
+       pause();
+       left_distance = sensor();            //Obtain reading at right position
+       Serial.print("Left Distance: ");
+       Serial.println(left_distance);
+       turn_right();                          //Turn left for 500 ms (passed original centre position)
+       delay(500);
+       pause();
+       right_distance = sensor();             //Obtain reading at left position
+       Serial.print("Right Distance: ");
+       Serial.println(right_distance); 
+       
+       if ((left_distance > right_distance) && (left_distance > 10)){
+         Serial.println("Going Left!"); 
+         turn_left();
+         delay(500);
+         pause();              
+       }
+       
+       else if ((left_distance < right_distance) && (right_distance > 10)){
+         Serial.println("Going Right!");             
+         forward();
+       }
+       
+       else {
+         reverse();
+         delay(500);
+         pause();
+         turn_left();
+         delay(500);
+         pause();
+       }
+  }
+  
+long sensor(){
+  long microseconds, distance;
+  digitalWrite(trigPin, LOW);  
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  microseconds = pulseIn(echoPin, HIGH);
+  distance = (microseconds/2) / 29.1; 
+  return distance;
+  }
+  
+//Directions will depend on motor wiring.
+//Re-wiring the motor +/- sign may be required
+
+void forward(){
+        digitalWrite( MOTOR_A_DIR, HIGH ); 
+        analogWrite( MOTOR_A_PWM, 255-PWM_SPEED ); 
+        digitalWrite( MOTOR_B_DIR, HIGH );
+        analogWrite( MOTOR_B_PWM, 255-PWM_SPEED ); 
+  }
+
+void reverse(){
+        digitalWrite( MOTOR_A_DIR, LOW );      
+        analogWrite( MOTOR_A_PWM, PWM_SPEED ); 
+        digitalWrite( MOTOR_B_DIR, LOW ); 
+        analogWrite( MOTOR_B_PWM, PWM_SPEED ); 
+  }
+
+void turn_right(){
+        digitalWrite( MOTOR_A_DIR, HIGH );       
+        analogWrite( MOTOR_A_PWM, 255-PWM_SPEED );
+        digitalWrite( MOTOR_B_DIR, LOW );       
+        analogWrite( MOTOR_B_PWM, PWM_SPEED );
+  }
+  
+void turn_left(){
+        digitalWrite( MOTOR_A_DIR, LOW );      
+        analogWrite( MOTOR_A_PWM, PWM_SPEED );
+        digitalWrite( MOTOR_B_DIR, HIGH );    
+        analogWrite( MOTOR_B_PWM, 255-PWM_SPEED );
+  } 
+  
+void pause(){
+        digitalWrite( MOTOR_A_DIR, LOW );
+        digitalWrite( MOTOR_A_PWM, LOW );
+        digitalWrite( MOTOR_B_DIR, LOW );
+        digitalWrite( MOTOR_B_PWM, LOW );
+        delay( DIR_DELAY );
+  }
