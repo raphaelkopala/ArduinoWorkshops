@@ -1,0 +1,31 @@
+
+//Ultra Sonic Sensor Pins
+int trigPin = 13;
+int echoPin = 12;
+
+ 
+void setup()
+{
+  //Ultra Sensor Pin Setup
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  //Serial Setup
+  Serial.begin(9600);
+}
+ 
+void loop()
+{
+  float microseconds, distance;              //Setup Variables
+  digitalWrite(trigPin, LOW);               //Set Trigger Pin LOW for 2 microseconds to settle 
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);              //Set Trigger Pin HIGH for 10 microseconds to begin  
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);               //Set Trigger Pin LOW to wait for signal in
+  microseconds = pulseIn(echoPin, HIGH);    //pulseIn waits for HIGH on Echo Pin, and measures until it goes LOW
+  distance = (microseconds/29.1)/2;         //Convert signal to cm (Speed of sound = 343 m/s, or 29.1 us/cm)
+  Serial.print(distance);                   //Print out distance
+  Serial.println("cm");
+  delay(1000);
+}
+
