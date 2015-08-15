@@ -6,8 +6,8 @@
 #define MOTOR_B_DIR 10 // Pin 10 --> Motor A Input A-1B
  
 // PWM Speed & Delay for abrupt motor changes
-#define PWM_SPEED 250 
-#define DIR_DELAY 500
+#define PWM_SPEED 200 
+#define DIR_DELAY 50
 
 //Ultra Sonic Sensor
 #define trigPin 13
@@ -63,6 +63,7 @@ void loop()
   
 void direction_check(){
        pause();
+       reverse(); delay(100); pause();
        cen_distance = sensor();              //Obtain new reading, in-case overshot
        turn_left(); delay(250); pause();     //Turn right for 250 ms
        left_distance = sensor();             //Obtain reading at right position
