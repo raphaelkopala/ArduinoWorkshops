@@ -55,6 +55,7 @@ void loop()
   
 void direction_check(){
        pause();
+       reverse(); delay(100); pause();
        cen_distance = sensor();              //Obtain new reading, in-case overshot
        turn_left(); delay(250); pause();     //Turn right for 250 ms
        left_distance = sensor();             //Obtain reading at right position
